@@ -54,8 +54,57 @@
     ],
     "restored": "0"
   },
+  "password-login-verification-first.json": {
+    "time": "2026-10-17T10:15:55.546121+00:00",
+    "events": [
+      "Existing session logged out normally",
+      "Username/password login accepted",
+      "Read before pairing: invalidUser",
+      "Read after pairing: invalidUser"
+    ],
+    "password_change_requested": false,
+    "result": "failed",
+    "failed_stage": "initialize_with_identical_passwords",
+    "error_type": "ApiFailure",
+    "status": 400,
+    "code": "changeFailed"
+  },
+  "password-login-verification.json": {
+    "time": "2026-10-17T10:18:36.826241+00:00",
+    "events": [
+      "Username/password login accepted",
+      "Read before pairing: invalidUser",
+      "Read after pairing: invalidUser"
+    ],
+    "password_change_requested": false,
+    "result": "failed",
+    "failed_stage": "initialize_with_identical_passwords",
+    "error_type": "ApiFailure",
+    "status": 400,
+    "code": "changeFailed"
+  },
+  "ha-registration-marker-verification.json": {
+    "time": "2026-10-17T10:21:14.455107+00:00",
+    "credentials_required": false,
+    "ha_identifier_registration": "accepted",
+    "original_registration_restored": true
+  },
+  "ha-username-login-verification.json": {
+    "result": "success",
+    "last_step": "create_entry",
+    "errors": {},
+    "initialization_sent": true,
+    "initialization_uncertain": false,
+    "new_password_submitted_by_user": true,
+    "ha_select_24": "confirmed",
+    "restored_mode": "0",
+    "home_assistant_core": "2026.9.4",
+    "desktop_identifier": true,
+    "physical_lobby_call": "not_tested",
+    "time": "2026-10-17T10:30:55.508614+00:00"
+  },
   "automated_tests": {
-    "passed": 57,
+    "passed": 81,
     "home_assistant_core": "2026.9.4",
     "python": "3.14.4",
     "pytest_homeassistant_custom_component": "0.13.367",
@@ -78,5 +127,5 @@
     "Direct phone App edit with single account"
   ],
   "final_confirmed_mode": "0",
-  "built_at": "2026-10-17T09:27:48.676420+00:00"
+  "built_at": "2026-10-17T10:33:37.953639+00:00"
 }

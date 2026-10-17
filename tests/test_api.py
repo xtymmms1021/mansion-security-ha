@@ -11,7 +11,7 @@ import pytest_asyncio
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from custom_components.mansion_security.api import (  # noqa: E402
-    AuthSession, MansionAuthError, MansionClient, MansionConnectionError,
+    AuthSession, MansionApiError, MansionAuthError, MansionClient, MansionConnectionError,
     MansionProtocolError, MansionUnsafeModeError, MansionWriteVerificationError,
     Preset, RoomState,
 )
@@ -50,6 +50,12 @@ async def backend(socket_enabled):
         if request.path.endswith("/regist_push_token"):
             assert body == {"platform": "android", "token": "test-push-token"}
             return web.json_response({})
+        if request.path.endswith("/init"):
+            assert body == {"oldPassword": "test-current-password", "newPassword": "test-new-password", "nickName": "Home Assistant"}
+            return web.json_response({})
+        if request.path.endswith("/logout"):
+            assert body == {}
+            return web.json_response({})
         if request.method == "POST":
             assert set(body) == {"autoResponse"}
             assert isinstance(body["autoResponse"], str)
@@ -64,6 +70,8 @@ async def backend(socket_enabled):
     app.router.add_route("*", "/v1/app_user/{uid}/room/setting", handle)
     app.router.add_post("/v1/app_user/{uid}/room/pairing", handle)
     app.router.add_post("/v1/app_user/{uid}/regist_push_token", handle)
+    app.router.add_post("/v1/app_user/{uid}/init", handle)
+    app.router.add_post("/v1/app_user/{uid}/logout", handle)
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "127.0.0.1", 0)
@@ -85,6 +93,27 @@ async def test_login_and_read_real_state(backend):
     snapshot = await client.async_get_snapshot()
     assert snapshot.state.mode == "0"
     assert [item.pattern for item in snapshot.presets if item.preset] == ["24", "23"]
+
+
+async def test_native_password_initialization_uses_current_session_without_retry(backend):
+    await backend["client"].async_initialize_account("test-current-password", "test-new-password", "Home Assistant")
+    assert len(backend["calls"]) == 1
+    assert backend["calls"][0][1] == "/v1/app_user/test-user/init"
+
+
+async def test_password_initialization_rejection_is_sanitized(backend):
+    backend["error"] = (400, "changeFailed")
+    with pytest.raises(MansionApiError) as caught:
+        await backend["client"].async_initialize_account("test-current-password", "test-new-password", "Home Assistant")
+    assert caught.value.code == "changeFailed"
+    assert "test-current-password" not in str(caught.value) and "test-new-password" not in str(caught.value)
+    assert len(backend["calls"]) == 1
+
+
+async def test_explicit_logout_releases_only_current_session(backend):
+    await backend["client"].async_logout()
+    assert backend["client"].auth is None
+    assert backend["calls"] == [("POST", "/v1/app_user/test-user/logout", {}, "GEAR-API-KEY test-key")]
 
 
 async def test_set_and_clear_with_readback(backend):

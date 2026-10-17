@@ -3,36 +3,119 @@
     "step": {
       "user": {
         "title": "Connect Mansion Security",
-        "description": "Paste the session code from the local setup tool. Home Assistant will use the completed account session. Keep the Android app signed out.",
-        "data": {"session_code": "Private session code"}
+        "description": "Choose a sign-in method. Keep the phone app signed out because the service allows one login.",
+        "menu_options": {
+          "login": "Sign in with username and password",
+          "import_session": "Import an existing session (advanced)"
+        }
+      },
+      "reauth": {
+        "title": "Reauthenticate Mansion Security",
+        "description": "Sign in with the same account or import a completed session.",
+        "menu_options": {
+          "login": "Sign in with username and password",
+          "reauth_confirm": "Import a new session"
+        }
+      },
+      "login": {
+        "title": "Sign in",
+        "description": "Enter your Mansion Security user ID and current password. The service will be checked for any pairing or initialization requirements.",
+        "data": {
+          "username": "User ID",
+          "password": "Current password"
+        }
+      },
+      "pairing": {
+        "title": "Enter the intercom pairing code",
+        "description": "Paste the complete decoded string from the intercom's QR label. No camera or image upload is needed. The nickname is used if initialization is required. Read the [app's notice](https://scmresource-prod.10fw.jp/contracttext.html).",
+        "data": {
+          "pair_hash": "QR code string",
+          "nickname": "Nickname",
+          "accept_terms": "I have read the notice and agree to use this account with HA"
+        }
+      },
+      "initialize": {
+        "title": "Complete required password initialization",
+        "description": "The service has not activated this login after pairing. This step actually changes the account password, following the native app's registration. Choose 8–32 printable ASCII characters, without spaces, different from your current password. Keep the new password. HA does not store passwords or change them during normal operation or restarts.",
+        "data": {
+          "new_password": "New password",
+          "confirm_password": "Confirm new password"
+        }
+      },
+      "finish_registration": {
+        "title": "Finish registration",
+        "description": "The initialization request has been sent. Submit to retry only pairing and reading; the password change will not be repeated. If the earlier request timed out, its outcome is uncertain. If this keeps failing, close this flow and sign in using the currently valid password."
+      },
+      "import_session": {
+        "title": "Import an existing session",
+        "description": "Paste the complete private code starting with MSHA1. This verifies an existing session without a new login or password change.",
+        "data": {
+          "session_code": "Private session code"
+        }
       },
       "reauth_confirm": {
-        "title": "Update the Mansion Security session",
-        "description": "Complete registration again with the local setup tool, then paste the new session code for the same account.",
-        "data": {"session_code": "New private session code"}
+        "title": "Import a new session",
+        "description": "Paste a new private session code for the same account.",
+        "data": {
+          "session_code": "New private session code"
+        }
       }
     },
     "error": {
-      "invalid_session": "The session code is incomplete, invalid, or belongs to a different account.",
-      "invalid_auth": "The server rejected this session. Complete account registration with the setup tool first.",
-      "cannot_connect": "Unable to read Mansion Security settings. Please try again later."
+      "invalid_session": "The session code is malformed or belongs to another account.",
+      "invalid_auth": "The credentials or session were rejected. Check the account and currently valid password.",
+      "cannot_connect": "Cannot connect to Mansion Security. Try again later.",
+      "already_logged_in": "The service returned alreadyLoggedIn. Sign out normally from the phone app before trying again.",
+      "wrong_account": "Use the account already configured for this integration.",
+      "invalid_pairing_code": "Enter the complete QR string without newlines or control characters.",
+      "invalid_nickname": "The nickname must contain 1–32 characters.",
+      "terms_required": "Read and accept the notice first.",
+      "pairing_failed": "The pairing or device registration was rejected. Check the QR code and account binding.",
+      "password_mismatch": "The two new passwords do not match.",
+      "password_unchanged": "The service requires a different password for initialization.",
+      "invalid_password": "Use 8–32 printable ASCII characters without spaces.",
+      "initialization_failed": "Password and nickname initialization was rejected. Check the rules and account state.",
+      "initialization_uncertain": "Initialization is unconfirmed and was not repeated. Retry the remaining registration or sign in again with the currently valid password."
     },
-    "abort": {"already_configured": "This account is already configured.", "reauth_successful": "The session has been updated."}
+    "abort": {
+      "already_configured": "This account is already configured.",
+      "reauth_successful": "The session has been updated.",
+      "wrong_account": "The session belongs to another account."
+    }
   },
   "options": {
     "step": {
       "init": {
         "title": "Automatic response presets",
         "description": "Enabling this option also makes presets that automatically unlock the entrance available in the menu.",
-        "data": {"allow_unlock_modes": "Allow presets that automatically unlock the entrance"}
+        "data": {
+          "allow_unlock_modes": "Allow presets that automatically unlock the entrance"
+        }
       }
     }
   },
-  "entity": {"select": {"auto_response": {"name": "Automatic response mode", "state": {"off": "Off"}}}},
+  "entity": {
+    "select": {
+      "auto_response": {
+        "name": "Automatic response mode",
+        "state": {
+          "off": "Off"
+        }
+      }
+    }
+  },
   "exceptions": {
-    "unlock_mode_disabled": {"message": "This preset automatically unlocks the entrance. Enable these presets in the integration options before selecting it."},
-    "authentication_required": {"message": "The session requires authentication. Update it from the integration settings."},
-    "cannot_set_mode": {"message": "The requested mode was not confirmed. Check the connection and current server state before trying again."},
-    "invalid_option": {"message": "This preset is not available for persistent automatic response."}
+    "unlock_mode_disabled": {
+      "message": "This preset automatically unlocks the entrance. Enable these presets in the integration options before selecting it."
+    },
+    "authentication_required": {
+      "message": "The session requires authentication. Update it from the integration settings."
+    },
+    "cannot_set_mode": {
+      "message": "The requested mode was not confirmed. Check the connection and current server state before trying again."
+    },
+    "invalid_option": {
+      "message": "This preset is not available for persistent automatic response."
+    }
   }
 }

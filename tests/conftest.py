@@ -9,7 +9,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 pytest_plugins = ("pytest_homeassistant_custom_component",)
 
-from custom_components.mansion_security.api import MansionClient, Preset, RoomState, Snapshot
+from custom_components.mansion_security.api import AuthSession, MansionClient, PairingInfo, Preset, RoomState, Snapshot
 
 
 @pytest.fixture(autouse=True)
@@ -34,6 +34,8 @@ def mock_client(presets):
     client = AsyncMock(spec=MansionClient)
     client.async_get_snapshot.return_value = Snapshot(RoomState(False, ""), presets)
     client.async_set_mode.return_value = Snapshot(RoomState(True, "24"), presets)
+    client.async_login.return_value = AuthSession("test-user", "test-key")
+    client.async_renew_pairing.return_value = PairingInfo("2099/01/01", "6")
     with patch("custom_components.mansion_security.MansionClient", return_value=client), \
             patch("custom_components.mansion_security.config_flow.MansionClient", return_value=client):
         yield client

@@ -13,7 +13,8 @@ from custom_components.mansion_security.session_codec import encode_session
 
 async def test_import_completed_session(hass, session_data, mock_client):
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
-    assert result["type"] is FlowResultType.FORM
+    assert result["type"] is FlowResultType.MENU
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "import_session"})
     with patch("custom_components.mansion_security.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_SESSION_CODE: encode_session(session_data)})
         await hass.async_block_till_done()
@@ -59,7 +60,8 @@ async def test_reauth_same_account(hass, session_data, mock_client):
     entry = MockConfigEntry(domain=DOMAIN, unique_id="test-user", data=session_data)
     entry.add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_REAUTH, "entry_id": entry.entry_id}, data=entry.data)
-    assert result["step_id"] == "reauth_confirm"
+    assert result["step_id"] == "reauth"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "reauth_confirm"})
     updated = {**session_data, "api_key": "replacement-test-key"}
     with patch("homeassistant.config_entries.ConfigEntries.async_reload", return_value=True):
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_SESSION_CODE: encode_session(updated)})
@@ -74,6 +76,7 @@ async def test_reauth_rejects_another_account(hass, session_data, mock_client):
     entry = MockConfigEntry(domain=DOMAIN, unique_id="test-user", data=session_data)
     entry.add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_REAUTH, "entry_id": entry.entry_id}, data=entry.data)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "reauth_confirm"})
     other = {**session_data, "user_id": "different-test-user"}
     result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_SESSION_CODE: encode_session(other)})
     assert result["errors"] == {"base": "invalid_session"}

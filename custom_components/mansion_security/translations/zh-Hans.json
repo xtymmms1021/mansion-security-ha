@@ -3,36 +3,119 @@
     "step": {
       "user": {
         "title": "连接 Mansion Security",
-        "description": "粘贴本机设置工具生成的会话导入码。HA 将使用已完成登记的账号会话；请保持安卓 App 退出。",
-        "data": {"session_code": "私密会话导入码"}
+        "description": "选择登录方式。请保持手机 App 退出，避免单账号同时登录。",
+        "menu_options": {
+          "login": "用户名和密码登录",
+          "import_session": "导入已有会话（高级）"
+        }
+      },
+      "reauth": {
+        "title": "重新认证 Mansion Security",
+        "description": "使用同一账号重新登录，或导入已完成登记的会话。",
+        "menu_options": {
+          "login": "用户名和密码登录",
+          "reauth_confirm": "导入新的会话"
+        }
+      },
+      "login": {
+        "title": "用户名和密码登录",
+        "description": "输入 Mansion Security 的用户 ID 和当前密码。登录后将检查服务端是否需要配对和账号初始化。",
+        "data": {
+          "username": "用户 ID",
+          "password": "当前密码"
+        }
+      },
+      "pairing": {
+        "title": "输入门铃配对码",
+        "description": "粘贴门铃贴纸二维码解码后的完整字符串，无需相机或上传图片。昵称会在需要初始化时使用。请先阅读[与 App 相同的注意事项](https://scmresource-prod.10fw.jp/contracttext.html)。",
+        "data": {
+          "pair_hash": "二维码字符串",
+          "nickname": "昵称",
+          "accept_terms": "已阅读注意事项，并同意将此账号用于 HA"
+        }
+      },
+      "initialize": {
+        "title": "完成服务端要求的密码初始化",
+        "description": "服务端在配对后仍未激活本次登录，需要完成 App 相同的初始化。此步骤会实际修改账号密码；请输入 8–32 位半角字母、数字或符号，且与当前密码不同。完成后请记住新密码。HA 不会保存密码，日常使用和重启不会再次改密。",
+        "data": {
+          "new_password": "新密码",
+          "confirm_password": "再次输入新密码"
+        }
+      },
+      "finish_registration": {
+        "title": "继续完成登记",
+        "description": "密码初始化请求已发送。点击提交只重试配对和读取，不会重复修改密码。如果先前请求超时，密码是否更新需以服务端结果为准；持续失败时可关闭流程并用当前有效密码重新登录。"
+      },
+      "import_session": {
+        "title": "导入已有会话",
+        "description": "粘贴 MSHA1 开头的完整私密会话码。此方式只验证和接续现有会话，不会再次登录或修改密码。",
+        "data": {
+          "session_code": "私密会话导入码"
+        }
       },
       "reauth_confirm": {
-        "title": "更新 Mansion Security 会话",
-        "description": "使用本机设置工具重新完成登记，然后粘贴同一账号的新会话导入码。",
-        "data": {"session_code": "新的私密会话导入码"}
+        "title": "导入新会话",
+        "description": "粘贴同一账号的新私密会话码。",
+        "data": {
+          "session_code": "新的私密会话导入码"
+        }
       }
     },
     "error": {
-      "invalid_session": "会话码不完整、格式有误，或属于其他账号。请复制完整的会话码。",
-      "invalid_auth": "服务端拒绝了此会话，请先使用设置工具完成账号登记。",
-      "cannot_connect": "无法读取 Mansion Security 设置，请稍后重试。"
+      "invalid_session": "会话码格式有误或属于其他账号。",
+      "invalid_auth": "凭据或会话未被接受，请检查账号状态及当前有效密码。",
+      "cannot_connect": "无法连接 Mansion Security，请稍后重试。",
+      "already_logged_in": "服务端返回 alreadyLoggedIn：账号仍在使用中。请先正常退出手机 App；不要反复尝试登录。",
+      "wrong_account": "此登录属于另一账号，请使用原集成的账号。",
+      "invalid_pairing_code": "请输入完整的二维码字符串，不要包含换行或控制字符。",
+      "invalid_nickname": "昵称长度需为 1–32 个字符。",
+      "terms_required": "请先阅读并同意注意事项。",
+      "pairing_failed": "服务端未接受配对或设备登记，请核对二维码及账号绑定状态。",
+      "password_mismatch": "两次输入的新密码不一致。",
+      "password_unchanged": "服务端不接受使用原密码初始化，请设置不同的新密码。",
+      "invalid_password": "新密码需为 8–32 位半角字母、数字或符号，不含空格。",
+      "initialization_failed": "服务端未接受密码和昵称初始化，请检查密码规则及账号状态。",
+      "initialization_uncertain": "尚未确认初始化结果，未重复改密。可以重试剩余登记；仍失败时，请用当前有效密码重新登录。"
     },
-    "abort": {"already_configured": "这个账号已添加。", "reauth_successful": "会话已更新。"}
+    "abort": {
+      "already_configured": "这个账号已添加。",
+      "reauth_successful": "会话已更新。",
+      "wrong_account": "此会话属于另一账号。"
+    }
   },
   "options": {
     "step": {
       "init": {
         "title": "自动应答预设",
         "description": "开启后，模式菜单也会显示自动解锁入口门的预设。",
-        "data": {"allow_unlock_modes": "允许自动开门预设"}
+        "data": {
+          "allow_unlock_modes": "允许自动开门预设"
+        }
       }
     }
   },
-  "entity": {"select": {"auto_response": {"name": "自动应答模式", "state": {"off": "关闭"}}}},
+  "entity": {
+    "select": {
+      "auto_response": {
+        "name": "自动应答模式",
+        "state": {
+          "off": "关闭"
+        }
+      }
+    }
+  },
   "exceptions": {
-    "unlock_mode_disabled": {"message": "这个预设会自动解锁入口门，请先在集成选项中启用自动开门预设。"},
-    "authentication_required": {"message": "会话需要重新认证，请在集成设置中更新会话。"},
-    "cannot_set_mode": {"message": "未能确认所选模式，请检查连接和服务端当前状态后再试。"},
-    "invalid_option": {"message": "这个预设不能用于提前设置自动应答。"}
+    "unlock_mode_disabled": {
+      "message": "这个预设会自动解锁入口门，请先在集成选项中启用自动开门预设。"
+    },
+    "authentication_required": {
+      "message": "会话需要重新认证，请在集成设置中更新会话。"
+    },
+    "cannot_set_mode": {
+      "message": "未能确认所选模式，请检查连接和服务端当前状态后再试。"
+    },
+    "invalid_option": {
+      "message": "这个预设不能用于提前设置自动应答。"
+    }
   }
 }

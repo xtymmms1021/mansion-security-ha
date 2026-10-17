@@ -165,6 +165,26 @@ class MansionClient:
             self.auth = AuthSession(user_id, api_key)
             return self.auth
 
+    async def async_initialize_account(self, current_password: str, new_password: str,
+                                       nickname: str) -> None:
+        """Complete native registration; only invoked by a configuration flow."""
+        async with self._operation_lock:
+            if self.auth is None:
+                raise MansionAuthError(401, "notAuthenticated")
+            path = f"/v1/app_user/{quote(self.auth.user_id, safe='')}/init"
+            await self._request("POST", path, body={
+                "oldPassword": current_password, "newPassword": new_password, "nickName": nickname,
+            })
+
+    async def async_logout(self) -> None:
+        """Release this client's own session after an explicit user action."""
+        async with self._operation_lock:
+            if self.auth is None:
+                raise MansionAuthError(401, "notAuthenticated")
+            path = f"/v1/app_user/{quote(self.auth.user_id, safe='')}/logout"
+            await self._request("POST", path, body={})
+            self.auth = None
+
     async def _get_presets(self) -> tuple[Preset, ...]:
         data = await self._request("GET", self._room_path("autores_list"))
         items = data.get("entrance")
@@ -205,22 +225,37 @@ class MansionClient:
                 raise MansionWriteVerificationError("The server did not confirm the requested mode")
             return Snapshot(state, presets)
 
+    async def _pair_room(self, pair_hash: str) -> PairingInfo:
+        data = await self._request("POST", self._room_path("pairing"), body={
+            "platform": "android", "hash": pair_hash,
+            "osVersion": "android16", "phoneModel": "xxxxx",
+        })
+        expires = data.get("expireDate")
+        if not isinstance(expires, str):
+            raise MansionProtocolError("Missing pairing expiry")
+        try:
+            datetime.strptime(expires, "%Y/%m/%d")
+        except ValueError:
+            raise MansionProtocolError("Invalid pairing expiry") from None
+        return PairingInfo(expires, str(data.get("validTerm", "")))
+
+    async def _register_device(self, token: str) -> None:
+        if self.auth is None:
+            raise MansionAuthError(401, "notAuthenticated")
+        path = f"/v1/app_user/{quote(self.auth.user_id, safe='')}/regist_push_token"
+        await self._request("POST", path, body={"platform": "android", "token": token})
+
+    async def async_pair_room(self, pair_hash: str) -> PairingInfo:
+        async with self._operation_lock:
+            return await self._pair_room(pair_hash)
+
+    async def async_register_device(self, token: str) -> None:
+        async with self._operation_lock:
+            await self._register_device(token)
+
     async def async_renew_pairing(self, pair_hash: str, push_token: str) -> PairingInfo:
         """Use the account's existing pairing credentials, without another login."""
         async with self._operation_lock:
-            data = await self._request("POST", self._room_path("pairing"), body={
-                "platform": "android", "hash": pair_hash,
-                "osVersion": "android16", "phoneModel": "xxxxx",
-            })
-            expires = data.get("expireDate")
-            if not isinstance(expires, str):
-                raise MansionProtocolError("Missing pairing expiry")
-            try:
-                datetime.strptime(expires, "%Y/%m/%d")
-            except ValueError:
-                raise MansionProtocolError("Invalid pairing expiry") from None
-            if self.auth is None:
-                raise MansionAuthError(401, "notAuthenticated")
-            path = f"/v1/app_user/{quote(self.auth.user_id, safe='')}/regist_push_token"
-            await self._request("POST", path, body={"platform": "android", "token": push_token})
-            return PairingInfo(expires, str(data.get("validTerm", "")))
+            info = await self._pair_room(pair_hash)
+            await self._register_device(push_token)
+            return info

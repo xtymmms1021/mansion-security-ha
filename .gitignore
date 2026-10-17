@@ -16,7 +16,8 @@ registration-status.json
 setup-url.txt
 local-setup*.json
 local-setup*.txt
-test_live_phone_off.py
+test_live_*.py
+.storage/
 FILES.sha256.json
 *.zip
 *.zip.sha256.txt
