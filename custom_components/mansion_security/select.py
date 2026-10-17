@@ -60,6 +60,7 @@ class MansionAutoResponseSelect(CoordinatorEntity[MansionCoordinator], SelectEnt
         return {"mode_id": state.mode,
                 "automatically_unlocks": preset.unlocks if state.enabled and preset else False if not state.enabled else None,
                 "preset_duration_hours": 2,
+                "auto_off_at": self.coordinator.auto_off_at,
                 "pairing_expires": self.coordinator.entry.data.get("expireDate")}
 
     async def async_select_option(self, option: str) -> None:
