@@ -1,0 +1,82 @@
+{
+  "live-api-verification.json": {
+    "time": "2026-10-17T08:42:17.238899+00:00",
+    "transport": "direct_https",
+    "phone_bridge": false,
+    "original": {
+      "enabled": false,
+      "pattern": ""
+    },
+    "set_24": {
+      "enabled": true,
+      "pattern": "24"
+    },
+    "repeat_24": {
+      "enabled": true,
+      "pattern": "24"
+    },
+    "restored": {
+      "enabled": false,
+      "pattern": ""
+    }
+  },
+  "phone-off-verification.json": {
+    "time": "2026-10-17T08:44:26.985649+00:00",
+    "user_confirmed_phone_powered_off": true,
+    "transport": "direct_https",
+    "physical_lobby_call": "not_tested",
+    "original": {
+      "enabled": false,
+      "pattern": ""
+    },
+    "set_24": {
+      "enabled": true,
+      "pattern": "24"
+    },
+    "restored": {
+      "enabled": false,
+      "pattern": ""
+    }
+  },
+  "live-ha-phone-off-verification.json": {
+    "time": "2026-10-17T09:06:41.794724+00:00",
+    "home_assistant_core": "2026.9.4",
+    "user_confirmed_phone_powered_off": true,
+    "test_instance": "isolated_core_test_fixture",
+    "target_ha_os_installed": false,
+    "physical_lobby_call": "not_tested",
+    "baseline": "0",
+    "events": [
+      "HA select.select_option -> 24, confirmed by GET",
+      "Repeated HA action -> 24, confirmed by GET",
+      "Integration reload -> 24, existing session reused",
+      "HA select.select_option -> 0, confirmed by GET"
+    ],
+    "restored": "0"
+  },
+  "automated_tests": {
+    "passed": 57,
+    "home_assistant_core": "2026.9.4",
+    "python": "3.14.4",
+    "pytest_homeassistant_custom_component": "0.13.367",
+    "external_account_requests": false
+  },
+  "pairing_renewal": {
+    "phone_off": true,
+    "existing_session_and_pairing_credentials": true,
+    "pairing_then_register_then_read": "passed",
+    "observed_expireDate": "2027/04/17",
+    "observed_validTerm": "6",
+    "six_month_natural_renewal": "not_tested"
+  },
+  "pending": [
+    "Installation in the user's HA OS",
+    "Physical lobby call while phone powered off",
+    "Actual automatically unlocking presets",
+    "Natural two-hour expiry",
+    "Long-term six-month renewal",
+    "Direct phone App edit with single account"
+  ],
+  "final_confirmed_mode": "0",
+  "built_at": "2026-10-17T09:25:28.375592+00:00"
+}

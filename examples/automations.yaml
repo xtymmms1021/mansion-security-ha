@@ -1,0 +1,17 @@
+# 替换 person.your_person 和 select.your_mansion_security_mode 后，
+# 将这个自动化条目添加到自己的 automations.yaml，或在自动化 YAML 编辑器中使用。
+- id: mansion_security_when_leaving
+  alias: "离家时门铃稍后再来"
+  triggers:
+    - trigger: state
+      entity_id: person.your_person
+      from: "home"
+      to: "not_home"
+  conditions: []
+  actions:
+    - action: select.select_option
+      target:
+        entity_id: select.your_mansion_security_mode
+      data:
+        option: "ただいま手が離せません。後ほどお越し下さい"
+  mode: single

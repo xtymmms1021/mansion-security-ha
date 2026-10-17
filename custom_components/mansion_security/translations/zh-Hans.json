@@ -1,0 +1,38 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "连接 Mansion Security",
+        "description": "粘贴本机设置工具生成的会话导入码。HA 将使用已完成登记的账号会话；请保持安卓 App 退出。",
+        "data": {"session_code": "私密会话导入码"}
+      },
+      "reauth_confirm": {
+        "title": "更新 Mansion Security 会话",
+        "description": "使用本机设置工具重新完成登记，然后粘贴同一账号的新会话导入码。",
+        "data": {"session_code": "新的私密会话导入码"}
+      }
+    },
+    "error": {
+      "invalid_session": "会话码不完整、格式有误，或属于其他账号。请复制完整的会话码。",
+      "invalid_auth": "服务端拒绝了此会话，请先使用设置工具完成账号登记。",
+      "cannot_connect": "无法读取 Mansion Security 设置，请稍后重试。"
+    },
+    "abort": {"already_configured": "这个账号已添加。", "reauth_successful": "会话已更新。"}
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "自动应答预设",
+        "description": "开启后，模式菜单也会显示自动解锁入口门的预设。",
+        "data": {"allow_unlock_modes": "允许自动开门预设"}
+      }
+    }
+  },
+  "entity": {"select": {"auto_response": {"name": "自动应答模式", "state": {"off": "关闭"}}}},
+  "exceptions": {
+    "unlock_mode_disabled": {"message": "这个预设会自动解锁入口门，请先在集成选项中启用自动开门预设。"},
+    "authentication_required": {"message": "会话需要重新认证，请在集成设置中更新会话。"},
+    "cannot_set_mode": {"message": "未能确认所选模式，请检查连接和服务端当前状态后再试。"},
+    "invalid_option": {"message": "这个预设不能用于提前设置自动应答。"}
+  }
+}

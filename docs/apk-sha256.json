@@ -1,0 +1,22 @@
+[
+  {
+    "file": "base.apk",
+    "sha256": "87bcb2f17a505a988afc792ad2be860ee272007ae63e4f73245fe630143e3e5e"
+  },
+  {
+    "file": "split_config.arm64_v8a.apk",
+    "sha256": "20eedd3a7b92b3d22c8b69e4d55b0121ee1f0108e0bcbe5a392cf1201d4ee7e4"
+  },
+  {
+    "file": "split_config.ja.apk",
+    "sha256": "ef98797eb08ea6064db61ec100d0c07dcb41fe305ba6ab1b2048eb0b34a2f99d"
+  },
+  {
+    "file": "split_config.xxhdpi.apk",
+    "sha256": "0c65cdef90ef46ec6130fefdddcf8a3981254dfb6faa8eef72ca11b387121459"
+  },
+  {
+    "file": "split_config.zh.apk",
+    "sha256": "251b14f51f373579e2c902ce05e6ac1ea158d3230a3f6908e0ca84bc57ab7830"
+  }
+]

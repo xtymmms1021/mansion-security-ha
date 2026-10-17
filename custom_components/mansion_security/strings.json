@@ -1,0 +1,38 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect Mansion Security",
+        "description": "Paste the session code from the local setup tool. Home Assistant will use the completed account session. Keep the Android app signed out.",
+        "data": {"session_code": "Private session code"}
+      },
+      "reauth_confirm": {
+        "title": "Update the Mansion Security session",
+        "description": "Complete registration again with the local setup tool, then paste the new session code for the same account.",
+        "data": {"session_code": "New private session code"}
+      }
+    },
+    "error": {
+      "invalid_session": "The session code is incomplete, invalid, or belongs to a different account.",
+      "invalid_auth": "The server rejected this session. Complete account registration with the setup tool first.",
+      "cannot_connect": "Unable to read Mansion Security settings. Please try again later."
+    },
+    "abort": {"already_configured": "This account is already configured.", "reauth_successful": "The session has been updated."}
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Automatic response presets",
+        "description": "Enabling this option also makes presets that automatically unlock the entrance available in the menu.",
+        "data": {"allow_unlock_modes": "Allow presets that automatically unlock the entrance"}
+      }
+    }
+  },
+  "entity": {"select": {"auto_response": {"name": "Automatic response mode", "state": {"off": "Off"}}}},
+  "exceptions": {
+    "unlock_mode_disabled": {"message": "This preset automatically unlocks the entrance. Enable these presets in the integration options before selecting it."},
+    "authentication_required": {"message": "The session requires authentication. Update it from the integration settings."},
+    "cannot_set_mode": {"message": "The requested mode was not confirmed. Check the connection and current server state before trying again."},
+    "invalid_option": {"message": "This preset is not available for persistent automatic response."}
+  }
+}

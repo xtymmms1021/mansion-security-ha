@@ -1,0 +1,12 @@
+# 每个 --- 分隔部分是一个可单独运行的动作，替换实际实体 ID。
+action: select.select_option
+target:
+  entity_id: select.your_mansion_security_mode
+data:
+  option: "ただいま手が離せません。後ほどお越し下さい"
+---
+action: select.select_option
+target:
+  entity_id: select.your_mansion_security_mode
+data:
+  option: "off"

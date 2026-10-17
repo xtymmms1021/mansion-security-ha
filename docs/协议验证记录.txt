@@ -1,0 +1,112 @@
+Mansion Security 自动应答协议与验证记录（脱敏）
+版本：0.1.0
+日期：2026-10-17（Asia/Tokyo）
+
+交付结论
+已证明：不使用安卓桥接，独立客户端及真实 HA Core 2026.9.4 的 select 动作可在手机关机时修改、回读云端预设，并恢复关闭。
+待证明：手机关机时实际大厅呼叫是否播放相应预设。用户当前无法测试楼下呼叫，因此没有把语音效果标记为通过。
+集成包可供安装验证；家中 HA OS 尚未安装本集成。
+
+应用与静态证据
+包名 jp.co.secom.MansionSecurityApp，versionName 2.0.0，versionCode 12，minSdk 29，targetSdk 36。
+从用户已授权 USB 调试的手机提取 base 和 arm64_v8a、ja、zh、xxhdpi 分包，哈希见 apk-sha256.json。
+使用 Android Platform Tools 37.0.1 和 JADX 1.5.6。JADX 总体反编译有 103 个错误，相关目标方法可读，并通过独立实测交叉确认。
+没有 root、修改 APK、绕过 TLS 校验或提取 Android 私有数据目录。
+
+关键类（均相对 jp/co/secom/MansionSecurityApp/）：
+ui/activity/AutoResponseActivity.java：设置页面及当前预设展示。
+presenter/impl/AutoResponsePresenterImpl.java：getDecisionInfo、getAutoResList、onDecision；createAutoBody 构造字符串字段 autoResponse。
+utils/ConstantsUtil.java：登录、配对、自动应答读取/写入等路径常量。
+ui/activity/PairLinkActivity.java、presenter/impl/PairLinkPresenterImpl.java：扫描后的配对及平台/推送登记。
+ui/activity/PasswordNicknameChangeActivity.java：正常登记的改密及昵称步骤，包含改密前重新登录。
+model/bean/AutoRespBean.java：autoRes 与 autoResPattern 状态结构。
+resources/res/values/strings.xml：auto_response_bottom_text 说明大厅呼叫和设置后 2 小时。
+此记录不分发第三方 APK、完整反编译源码或用户日志。
+
+已验证接口
+根地址 https://secom-dmc.smu.10fw.co.jp
+User-Agent: okhttp/4.12.0
+Authorization: GEAR-API-KEY <API_KEY>
+JSON 请求，HTTPS 标准证书校验。userId 作为路径段编码。
+
+POST /v1/app_user/login
+  {"name":"<USER_NAME>","password":"<PASSWORD>"}
+  关键响应字段 userId、acApiKey。
+
+POST /v1/app_user/<USER_ID>/room/pairing
+  {"platform":"android","hash":"<PAIRING_QR>","osVersion":"android16","phoneModel":"xxxxx"}
+  返回 expireDate（YYYY/MM/DD）及 validTerm；此次返回 2027/04/17、6。
+
+POST /v1/app_user/<USER_ID>/regist_push_token
+  {"platform":"android","token":"<EXISTING_FCM_TOKEN>"}
+  复用用户自己 App 已登记的令牌；从该 App 自身调试日志获得。未伪造第三方账号。
+
+POST /v1/app_user/<USER_ID>/init
+  {"oldPassword":"<CURRENT_PASSWORD>","newPassword":"<NEW_PASSWORD>","nickName":"<NICKNAME>"}
+  此步骤实际修改密码，由用户在本机表单中自行填写并提交；工具不保存密码。
+
+正常登记顺序（已实测）：
+  login → pairing → regist_push_token → login（刷新密钥）→ init → pairing → regist_push_token → 读取房间设置。
+仅 login 即使接受用户名密码，也不足以读取房间设置，可能得到 invalidUser。
+不能把 invalidUser 简单归因为用户名或密码错误。
+
+GET /v1/app_user/<USER_ID>/room/autores_list
+  读取 entrance、doorphone 数组。本住户 doorphone 为空。
+  每项含 autoResPattern、title、endTalk、unLock、preset、relationId 等。
+  仅 entrance 中 preset=true 的项目可作为提前设置的持久预设。
+
+GET /v1/app_user/<USER_ID>/room/setting
+  关闭响应 {"autoRes":false,"autoResPattern":""}
+  模式 24 响应 {"autoRes":true,"autoResPattern":"24"}
+
+POST /v1/app_user/<USER_ID>/room/setting
+  {"autoResponse":"24"} 设置预设。
+  {"autoResponse":"0"} 关闭。数值均为 JSON 字符串。
+  每次写入后 GET 回读确认，不自动重试写入。
+
+实际预设
+33：荷物はフロアの宅配ボックスへ入れてください，unLock=true，preset=true。
+24：ただいま手が離せません。後ほどお越し下さい，unLock=false，preset=true。
+23：どうぞお入りください，unLock=true，preset=true。
+三者 endTalk=true，relationId 为空。
+23、33 会自动解锁入口门，默认从 HA 可选菜单隐藏。
+
+认证与续期
+服务端出现 alreadyLoggedIn，证明此账号不接受手机 App 与新客户端并行登录。
+用户选择把唯一账号交由 HA，正常退出手机 App 并完成独立登记。
+HA 导入已完成登记的会话，启动不调用 login，不重新改密。
+配对续期使用同一会话的 pairing → regist_push_token，手机关机时已验证成功。
+HA 在到期前 7 天开始续期，保存新到期日。实际六个月后令牌持续有效性仍未长期实测。
+会话失效时 HA 进入重新认证；Windows 工具可以用已保存配对资料完成正常重新登记，用户需自行提交改密表单。
+
+错误语义
+loginFailed：该次用户名/密码未被接受。
+alreadyLoggedIn：账号被服务端视为已登录。
+invalidUser、authFailed 或 HTTP 401/403：当前会话不可用于此操作，可能与登记/配对状态有关；HA 要求重新认证。
+超时、网络故障、非预期 JSON：读取/设置失败，实体不可用；不把未确认写入显示成功。
+错误消息只含经过字符白名单过滤的错误码，不记录响应正文或凭据。
+
+真实验证记录
+2026-10-17 08:42 UTC：独立客户端读取关闭，设置 24，重复设置 24，恢复关闭，每步回读匹配。
+2026-10-17 08:44 UTC：用户确认手机完全关机；独立客户端再次设置 24、回读并恢复关闭。
+手机关机期间：使用现有二维码和登记令牌续配对成功，随后可读取房间设置。
+2026-10-17 09:06 UTC：隔离 HA Core 2026.9.4 实例导入真实会话，select.select_option 设置 24、重复设置 24，重载集成后读到 24，再通过 HA 动作关闭并确认。1 项真实测试通过。
+没有启用自动开门预设。最终已确认模式 0 / autoRes=false。
+
+自动测试（无真实账号请求）
+57 项通过，Home Assistant Core 2026.9.4，Python 3.14.4，pytest-homeassistant-custom-component 0.13.367。
+覆盖协议读写、重复写、各预设及开门限制、未知/非持久预设、服务端标志变化、认证失效、超时、不匹配回读、请求串行化、配对续期；HA 配置/重复配置/重新认证/选项、实体动作和不可用恢复、其他客户端修改后同步、集成重载恢复；正常登记顺序、改密前/后失败、改密结果不确定时不重试、导出页来源/CSRF/重复提交保护和脱敏诊断。
+预设 23、33 的读写仅在模拟服务中覆盖，真实住宅未执行。
+同步测试使用独立客户端的状态变化模拟手机 App 修改。由于只有一个账号，没有重新登录手机 App 做对照测试。
+
+尚未验收及限制
+1. 大厅实际呼叫和手机关机时语音播放效果；这是最终可行性门槛尚缺的一项。
+2. 家中 HA OS 部署和设备重启后的现场恢复；已测相同 Core 版本的隔离实例及集成重载。
+3. 两小时自然到期及六个月自然续期的长期运行；目前依据 App 文案与即时接口调用，不能声称完成时长验证。
+4. 自动开门预设的实际效果，仅识别到云端标志，无现场测试。
+5. 不能从公开接口确定应答具体运行在云端还是门铃固件；已证明设置不需要手机执行，实际播放仍待验收。
+
+外部参考（实现时查阅）
+https://play.google.com/store/apps/details?id=jp.co.secom.MansionSecurityApp
+https://developers.home-assistant.io/docs/core/entity/select/
+https://developers.home-assistant.io/docs/config_entries_config_flow_handler/
