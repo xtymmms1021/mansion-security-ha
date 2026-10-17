@@ -38,10 +38,6 @@ class MansionAuthError(MansionApiError):
     pass
 
 
-class MansionUnsafeModeError(MansionError):
-    pass
-
-
 class MansionWriteVerificationError(MansionError):
     pass
 
@@ -208,17 +204,15 @@ class MansionClient:
         async with self._operation_lock:
             return await self._get_state()
 
-    async def async_set_mode(self, pattern: str, *, allow_unlock: bool = False) -> Snapshot:
+    async def async_set_mode(self, pattern: str) -> Snapshot:
         async with self._operation_lock:
-            # Fetch the current flags before every write: an existing pattern can
-            # change meaning on the server after a configuration update.
+            # Recheck the current list before writing: only persistent presets
+            # that are still available can be selected.
             presets = await self._get_presets()
             if pattern != OFF:
                 preset = next((item for item in presets if item.pattern == pattern and item.preset), None)
                 if preset is None:
                     raise MansionProtocolError("Not an available persistent preset")
-                if preset.unlocks and not allow_unlock:
-                    raise MansionUnsafeModeError("This preset automatically unlocks the entrance")
             await self._request("POST", self._room_path("setting"), body={"autoResponse": pattern})
             state = await self._get_state()
             if state.mode != pattern:

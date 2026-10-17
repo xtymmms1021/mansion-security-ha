@@ -12,7 +12,7 @@ import pytest_asyncio
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from custom_components.mansion_security.api import (  # noqa: E402
     AuthSession, MansionApiError, MansionAuthError, MansionClient, MansionConnectionError,
-    MansionProtocolError, MansionUnsafeModeError, MansionWriteVerificationError,
+    MansionProtocolError, MansionWriteVerificationError,
     Preset, RoomState,
 )
 
@@ -25,6 +25,7 @@ async def backend(socket_enabled):
         "presets": [
             {"autoResPattern": "24", "title": "稍后再来", "unLock": False, "preset": True},
             {"autoResPattern": "23", "title": "请进", "unLock": True, "preset": True},
+            {"autoResPattern": "33", "title": "放入楼层快递柜", "unLock": True, "preset": True},
             {"autoResPattern": "99", "title": "仅限通话中", "unLock": False, "preset": False},
         ],
     }
@@ -92,7 +93,7 @@ async def test_login_and_read_real_state(backend):
     assert "test-key" not in repr(auth)
     snapshot = await client.async_get_snapshot()
     assert snapshot.state.mode == "0"
-    assert [item.pattern for item in snapshot.presets if item.preset] == ["24", "23"]
+    assert [item.pattern for item in snapshot.presets if item.preset] == ["24", "23", "33"]
 
 
 async def test_native_password_initialization_uses_current_session_without_retry(backend):
@@ -130,27 +131,26 @@ async def test_reapply_is_explicit_write(backend):
     assert sum(call[0] == "POST" for call in backend["calls"]) == 1
 
 
-@pytest.mark.parametrize("mode,exception", [
-    ("23", MansionUnsafeModeError), ("99", MansionProtocolError),
-    ("does-not-exist", MansionProtocolError),
-])
-async def test_unapproved_or_unavailable_mode_never_writes(backend, mode, exception):
-    with pytest.raises(exception):
+@pytest.mark.parametrize("mode", ["99", "does-not-exist"])
+async def test_unavailable_mode_never_writes(backend, mode):
+    with pytest.raises(MansionProtocolError):
         await backend["client"].async_set_mode(mode)
     assert all(call[0] != "POST" for call in backend["calls"])
 
 
-async def test_explicit_unlock_opt_in_only_in_mock(backend):
-    result = await backend["client"].async_set_mode("23", allow_unlock=True)
-    assert result.state.mode == "23"
+@pytest.mark.parametrize("mode", ["23", "33"])
+async def test_unlock_presets_are_selectable_without_opt_in_in_mock(backend, mode):
+    result = await backend["client"].async_set_mode(mode)
+    assert result.state.mode == mode
+    assert [call[2] for call in backend["calls"] if call[0] == "POST"] == [{"autoResponse": mode}]
 
 
-async def test_changed_unlock_flag_is_checked_again(backend):
+async def test_updated_unlock_flag_is_returned_without_restricting_selection(backend):
     await backend["client"].async_get_snapshot()
     backend["presets"][0]["unLock"] = True
-    with pytest.raises(MansionUnsafeModeError):
-        await backend["client"].async_set_mode("24")
-    assert all(call[0] != "POST" for call in backend["calls"])
+    result = await backend["client"].async_set_mode("24")
+    assert result.state.mode == "24"
+    assert result.presets[0].unlocks is True
 
 
 async def test_no_optimistic_success(backend):

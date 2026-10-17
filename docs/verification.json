@@ -104,7 +104,7 @@
     "time": "2026-10-17T10:30:55.508614+00:00"
   },
   "automated_tests": {
-    "passed": 81,
+    "passed": 85,
     "home_assistant_core": "2026.9.4",
     "python": "3.14.4",
     "pytest_homeassistant_custom_component": "0.13.367",
@@ -134,6 +134,16 @@
     "update_interval_seconds": 60,
     "cloud_setting_requests_during_rollback": 0
   },
+  "runtime_behavior": {
+    "release": "0.4.0",
+    "all_persistent_presets_visible_and_selectable": true,
+    "unlock_opt_in_required": false,
+    "legacy_unlock_preference_ignored": true,
+    "unlocking_presets_labeled": true,
+    "local_auto_off_timer": false,
+    "update_interval_seconds": 60,
+    "cloud_setting_requests_during_this_change": 0
+  },
   "last_known_cloud_observation": {
     "recorded_at": "2026-10-17T10:56:04.572282+00:00",
     "home_assistant_core": "2026.9.4",
@@ -151,5 +161,5 @@
     "two_hour_wall_clock_run": "not_tested",
     "physical_lobby_call": "not_tested"
   },
-  "built_at": "2026-10-17T11:01:48.026005+00:00"
+  "built_at": "2026-10-17T11:08:44.125555+00:00"
 }

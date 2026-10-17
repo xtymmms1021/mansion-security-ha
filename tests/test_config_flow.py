@@ -1,4 +1,4 @@
-"""Validate setup, reauthentication and options with Home Assistant."""
+"""Validate setup and reauthentication with Home Assistant."""
 
 from unittest.mock import patch
 
@@ -7,7 +7,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mansion_security.api import MansionAuthError, MansionConnectionError
-from custom_components.mansion_security.const import CONF_ALLOW_UNLOCK_MODES, CONF_SESSION_CODE, DOMAIN
+from custom_components.mansion_security.const import CONF_SESSION_CODE, DOMAIN
 from custom_components.mansion_security.session_codec import encode_session
 
 
@@ -20,7 +20,7 @@ async def test_import_completed_session(hass, session_data, mock_client):
         await hass.async_block_till_done()
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"] == session_data
-    assert result["options"] == {CONF_ALLOW_UNLOCK_MODES: False}
+    assert result["options"] == {}
     mock_client.async_get_snapshot.assert_awaited_once()
     mock_client.async_login.assert_not_awaited()
     mock_client.async_set_mode.assert_not_awaited()
@@ -81,13 +81,3 @@ async def test_reauth_rejects_another_account(hass, session_data, mock_client):
     result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_SESSION_CODE: encode_session(other)})
     assert result["errors"] == {"base": "invalid_session"}
     mock_client.async_get_snapshot.assert_not_awaited()
-
-
-async def test_unlock_modes_require_explicit_option(hass, session_data):
-    entry = MockConfigEntry(domain=DOMAIN, data=session_data, options={CONF_ALLOW_UNLOCK_MODES: False})
-    entry.add_to_hass(hass)
-    result = await hass.config_entries.options.async_init(entry.entry_id)
-    assert result["type"] is FlowResultType.FORM
-    result = await hass.config_entries.options.async_configure(result["flow_id"], {CONF_ALLOW_UNLOCK_MODES: True})
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert entry.options[CONF_ALLOW_UNLOCK_MODES] is True

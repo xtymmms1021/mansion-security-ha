@@ -4,7 +4,6 @@ from datetime import timedelta
 
 DOMAIN = "mansion_security"
 CONF_SESSION_CODE = "session_code"
-CONF_ALLOW_UNLOCK_MODES = "allow_unlock_modes"
 CONF_PAIR_HASH = "pair_hash"
 CONF_NICKNAME = "nickname"
 CONF_ACCEPT_TERMS = "accept_terms"

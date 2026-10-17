@@ -47,8 +47,8 @@ class MansionAutoResponseSelect(CoordinatorEntity[MansionCoordinator], SelectEnt
     @property
     def options(self) -> list[str]:
         options = ["off"] + [preset_label(item) for item in self.coordinator.data.presets
-                              if item.preset and (not item.unlocks or self.coordinator.allow_unlock_modes)]
-        # Preserve the observed state even if it is an unknown or disabled preset.
+                              if item.preset]
+        # Preserve the observed state even if it is an unknown or nonpersistent preset.
         if self.current_option not in options:
             options.append(self.current_option)
         return options

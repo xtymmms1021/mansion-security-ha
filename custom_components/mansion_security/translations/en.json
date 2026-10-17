@@ -83,17 +83,6 @@
       "wrong_account": "The session belongs to another account."
     }
   },
-  "options": {
-    "step": {
-      "init": {
-        "title": "Automatic response presets",
-        "description": "Enabling this option also makes presets that automatically unlock the entrance available in the menu.",
-        "data": {
-          "allow_unlock_modes": "Allow presets that automatically unlock the entrance"
-        }
-      }
-    }
-  },
   "entity": {
     "select": {
       "auto_response": {
@@ -105,9 +94,6 @@
     }
   },
   "exceptions": {
-    "unlock_mode_disabled": {
-      "message": "This preset automatically unlocks the entrance. Enable these presets in the integration options before selecting it."
-    },
     "authentication_required": {
       "message": "The session requires authentication. Update it from the integration settings."
     },

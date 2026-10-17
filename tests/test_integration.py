@@ -13,17 +13,17 @@ from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mansion_security.api import (
-    MansionAuthError, MansionConnectionError, MansionUnsafeModeError,
+    MansionAuthError, MansionConnectionError,
     PairingInfo, RoomState, Snapshot,
 )
-from custom_components.mansion_security.const import CONF_ALLOW_UNLOCK_MODES, DOMAIN
+from custom_components.mansion_security.const import DOMAIN
 from custom_components.mansion_security.diagnostics import async_get_config_entry_diagnostics
 from custom_components.mansion_security.select import preset_label
 
 
-async def setup(hass, session_data, *, allow_unlock=False):
+async def setup(hass, session_data, *, options=None):
     entry = MockConfigEntry(domain=DOMAIN, title="Mansion Security", unique_id="test-user",
-                            data=session_data, options={CONF_ALLOW_UNLOCK_MODES: allow_unlock})
+                            data=session_data, options=options or {})
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -36,7 +36,7 @@ async def test_setup_restores_server_state_without_login_or_writes(hass, session
     entry, entity_id = await setup(hass, session_data)
     entity = hass.states.get(entity_id)
     assert entity.state == "off"
-    assert entity.attributes["options"] == ["off", "稍后再来"]
+    assert entity.attributes["options"] == ["off", "放入楼层快递柜（自动开门）", "稍后再来", "请进（自动开门）"]
     assert entry.runtime_data.update_interval == timedelta(seconds=60)
     mock_client.async_login.assert_not_awaited()
     mock_client.async_set_mode.assert_not_awaited()
@@ -59,7 +59,7 @@ async def test_select_service_updates_only_after_confirmed_readback(hass, sessio
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == "稍后再来"
     assert hass.states.get(entity_id).attributes["mode_id"] == "24"
-    mock_client.async_set_mode.assert_awaited_once_with("24", allow_unlock=False)
+    mock_client.async_set_mode.assert_awaited_once_with("24")
 
 
 async def test_poll_observes_changes_from_another_client(hass, session_data, mock_client, presets):
@@ -94,18 +94,28 @@ async def test_write_failure_does_not_claim_success(hass, session_data, mock_cli
 
 
 async def test_unlock_modes_are_explicitly_labeled(hass, session_data, mock_client, presets):
-    _, entity_id = await setup(hass, session_data, allow_unlock=True)
+    _, entity_id = await setup(hass, session_data)
     options = hass.states.get(entity_id).attributes["options"]
-    assert preset_label(presets[0]) in options
-    assert "自动开门" in preset_label(presets[0])
+    for preset in (presets[0], presets[2]):
+        assert preset_label(preset) in options
+        assert "自动开门" in preset_label(preset)
 
 
-async def test_blocked_unlock_write_preserves_state(hass, session_data, mock_client, presets):
-    entry, entity_id = await setup(hass, session_data)
-    mock_client.async_set_mode.side_effect = MansionUnsafeModeError("Automatically unlocks")
-    with pytest.raises(HomeAssistantError):
-        await entry.runtime_data.async_set_mode("23")
-    assert hass.states.get(entity_id).state == "off"
+@pytest.mark.parametrize("options", [{}, {"allow_unlock_modes": False}, {"allow_unlock_modes": True}])
+@pytest.mark.parametrize("mode", ["23", "33"])
+async def test_unlock_presets_work_for_new_and_legacy_entries(hass, session_data, mock_client, presets, options, mode):
+    _, entity_id = await setup(hass, session_data, options=options)
+    expected_options = ["off", *map(preset_label, presets)]
+    assert hass.states.get(entity_id).attributes["options"] == expected_options
+    preset = next(item for item in presets if item.pattern == mode)
+    mock_client.async_set_mode.return_value = Snapshot(RoomState(True, mode), presets)
+    await hass.services.async_call(SELECT_DOMAIN, SERVICE_SELECT_OPTION,
+                                  {ATTR_ENTITY_ID: entity_id, ATTR_OPTION: preset_label(preset)}, blocking=True)
+    await hass.async_block_till_done()
+    mock_client.async_set_mode.assert_awaited_once_with(mode)
+    state = hass.states.get(entity_id)
+    assert state.state == preset_label(preset)
+    assert state.attributes["automatically_unlocks"] is True
 
 
 async def test_unknown_current_mode_is_visible(hass, session_data, mock_client, presets):

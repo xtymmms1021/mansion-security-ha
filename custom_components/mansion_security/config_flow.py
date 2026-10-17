@@ -10,7 +10,6 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
-from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import selector
 
@@ -20,7 +19,7 @@ from .api import (
 )
 from .auth_store import async_get_pending_registrations
 from .const import (
-    CONF_ACCEPT_TERMS, CONF_ALLOW_UNLOCK_MODES, CONF_CONFIRM_PASSWORD,
+    CONF_ACCEPT_TERMS, CONF_CONFIRM_PASSWORD,
     CONF_NEW_PASSWORD, CONF_NICKNAME, CONF_PAIR_HASH, CONF_SESSION_CODE, DOMAIN,
 )
 from .session_codec import InvalidSession, decode_session
@@ -65,8 +64,7 @@ class MansionConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         else:
             await self.async_set_unique_id(data["user_id"])
             self._abort_if_unique_id_configured()
-            result = self.async_create_entry(title="Mansion Security", data=data,
-                                            options={CONF_ALLOW_UNLOCK_MODES: False})
+            result = self.async_create_entry(title="Mansion Security", data=data)
         if data.get("login_name"):
             await async_get_pending_registrations(self.hass).async_remove(data["login_name"])
         return result
@@ -269,17 +267,3 @@ class MansionConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_reauth_confirm(self, user_input: dict[str, Any] | None = None):
         return await self._async_import(user_input, "reauth_confirm")
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry: config_entries.ConfigEntry):
-        return MansionOptionsFlow()
-
-
-class MansionOptionsFlow(config_entries.OptionsFlowWithReload):
-    async def async_step_init(self, user_input: dict[str, Any] | None = None):
-        if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
-        schema = vol.Schema({vol.Required(CONF_ALLOW_UNLOCK_MODES,
-                                         default=self.config_entry.options.get(CONF_ALLOW_UNLOCK_MODES, False)): bool})
-        return self.async_show_form(step_id="init", data_schema=schema)

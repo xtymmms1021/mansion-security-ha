@@ -9,8 +9,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import MansionAuthError, MansionClient, MansionError, MansionUnsafeModeError, Snapshot
-from .const import CONF_ALLOW_UNLOCK_MODES, DEFAULT_UPDATE_INTERVAL, DOMAIN, PAIRING_RENEWAL_DAYS
+from .api import MansionAuthError, MansionClient, MansionError, Snapshot
+from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN, PAIRING_RENEWAL_DAYS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,10 +21,6 @@ class MansionCoordinator(DataUpdateCoordinator[Snapshot]):
                          update_interval=DEFAULT_UPDATE_INTERVAL, always_update=False)
         self.entry = entry
         self.client = client
-
-    @property
-    def allow_unlock_modes(self) -> bool:
-        return self.entry.options.get(CONF_ALLOW_UNLOCK_MODES, False)
 
     async def _async_update_data(self) -> Snapshot:
         try:
@@ -56,9 +52,7 @@ class MansionCoordinator(DataUpdateCoordinator[Snapshot]):
 
     async def async_set_mode(self, mode: str) -> None:
         try:
-            snapshot = await self.client.async_set_mode(mode, allow_unlock=self.allow_unlock_modes)
-        except MansionUnsafeModeError:
-            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="unlock_mode_disabled") from None
+            snapshot = await self.client.async_set_mode(mode)
         except MansionAuthError as error:
             self.async_set_update_error(error)
             self.entry.async_start_reauth(self.hass)

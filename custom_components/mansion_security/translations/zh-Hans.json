@@ -83,17 +83,6 @@
       "wrong_account": "此会话属于另一账号。"
     }
   },
-  "options": {
-    "step": {
-      "init": {
-        "title": "自动应答预设",
-        "description": "开启后，模式菜单也会显示自动解锁入口门的预设。",
-        "data": {
-          "allow_unlock_modes": "允许自动开门预设"
-        }
-      }
-    }
-  },
   "entity": {
     "select": {
       "auto_response": {
@@ -105,9 +94,6 @@
     }
   },
   "exceptions": {
-    "unlock_mode_disabled": {
-      "message": "这个预设会自动解锁入口门，请先在集成选项中启用自动开门预设。"
-    },
     "authentication_required": {
       "message": "会话需要重新认证，请在集成设置中更新会话。"
     },
