@@ -1,22 +1,25 @@
 # Mansion Security 自动应答 · Home Assistant 自定义集成
 
-版本 0.1.0，验证目标 Home Assistant Core **2026.9.4 / Python 3.14**。适用于此次账号绑定的大厅 `ロビーインターホン`，使用 App 已有预设。
+版本 0.1.1，验证目标 Home Assistant Core **2026.9.4 / Python 3.14**。适用于此次账号绑定的大厅 `ロビーインターホン`，使用 App 已有预设。
 
 手机关机时，独立 HTTPS 客户端和隔离的真实 HA Core 实例均已完成“关闭 → 稍后再来 → 关闭”的写入和回读。**家中 HA OS 尚未安装，楼下实际呼叫及语音应答尚未验收。** 当前模式已恢复关闭。本包作为待现场验收的版本交付。
 
-## GitHub 与 HACS
+## 通过 HACS 安装
 
-源码仓库：[xtymmms1021/mansion-security-ha](https://github.com/xtymmms1021/mansion-security-ha)，当前为私有仓库。
+仓库：[xtymmms1021/mansion-security-ha](https://github.com/xtymmms1021/mansion-security-ha)。
 
-本项目已具备 HACS 自定义集成需要的 `custom_components/mansion_security` 目录、`hacs.json`、版本、文档及问题跟踪地址。原版 HACS 从 GitHub 下载文件时没有携带私有仓库访问凭据，因此**不能仅靠添加这个私有仓库地址来安装**。HACS 上游的校验工具也明确拒绝私有仓库。
+1. 打开 HA 的 HACS，点击右上角“⋮ → 自定义存储库 / Custom repositories”。
+2. 仓库地址填 `https://github.com/xtymmms1021/mansion-security-ha`，类别选“集成 / Integration”，点击添加。
+3. 搜索并打开 **Mansion Security**，下载最新版本，然后重启 Home Assistant。
+4. 按下方安装说明第 4–7 步，从 Windows 本机工具复制会话码，在 HA 的“设置 → 设备与服务 → 添加集成”中完成会话导入。已有配置升级时无需再次导入。
 
-若另有公开安装仓库，在 HACS 右上角“⋮ → 自定义存储库”粘贴公开仓库地址，类别选“集成 / Integration”，添加后打开 Mansion Security 并下载，再重启 HA、按下文导入会话。请以获准公开后提供的实际安装仓库地址为准。
+HACS 负责安装和更新集成文件，账号认证仍在 Mansion Security 集成中完成。从手动安装切换到 HACS 时，实体和现有配置可以继续使用，无需先删除集成条目。
 
-继续保持全部私有时，使用下方文件复制方式安装，或从私有仓库的 Release 下载完整安装包。为 HACS 增加任意私有仓库权限并不能修复它的无认证文件下载路径，本项目也不会修改 HACS 的内部代码。
+仓库只包含程序、说明、示例和脱敏验证记录，真实账号凭据不在 GitHub。初次认证需要已经完成原生登记的私密会话；本项目未提供任意新账号仅凭用户名密码自动开户的流程。
 
-依据：[HACS 文件下载实现](https://github.com/hacs/integration/blob/adc26ec798021d2c2db1e6aa90eabe2e208b8c04/custom_components/hacs/base.py#L669-L699)、[私有仓库校验限制](https://github.com/hacs/integration/blob/adc26ec798021d2c2db1e6aa90eabe2e208b8c04/action/action.py#L155-L160)、[自定义仓库说明](https://www.hacs.dev/docs/faq/custom_repositories/)。
+参考：[HACS 自定义仓库说明](https://www.hacs.dev/docs/faq/custom_repositories/)。
 
-## 安装到 HA OS（保持私有）
+## 手动安装及会话导入
 
 1. 解压安装包。将包内整个 `custom_components/mansion_security` 文件夹复制到 HA 的 `/config/custom_components/mansion_security`。可使用自己已安装的文件编辑或文件共享工具。如果 `custom_components` 不存在，先创建它。
 2. 检查路径应为 `/config/custom_components/mansion_security/manifest.json`，避免重复嵌套目录。无需复制 `tools`、`tests` 到 HA，也无需在 HA OS 中安装 Python 或 ADB。
